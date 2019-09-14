@@ -128,11 +128,8 @@ static std::unique_ptr<ExprAST> ParseParenExpr() {
     // 　 CurTokが')'かどうかチェックします。もし')'でなければ、LogErrorを用いてエラーを出して下さい。
     // 4. getNextToken()を呼んでトークンを一つ進め、2で呼んだParseExpressionの返り値を返します。
     //
-    std::cout<<"KAKKO ARUNE!" << std::endl;
     if(CurTok != '('){
         LogError("KAKKO ( JYA NAIYO");
-        std::cout << (char)CurTok << std::endl;
-        LogError("DAYO");
     }
     getNextToken();
     auto ptr = ParseExpression();
@@ -175,28 +172,17 @@ static std::unique_ptr<ExprAST> ParseBinOpRHS(int CallerPrec,
 
         int BinOp = CurTok;
         getNextToken();
-        std::cout << "RISA" << std::endl;
         auto RHS = ParsePrimary();
         int NextPrec = GetTokPrecedence();
         std::cout << "Next is" << (char)CurTok << "and this prec is "<<NextPrec << std::endl;
         if(tokprec <= NextPrec){
-            std::cout << "SAIKI" << std::endl;
             RHS = ParseBinOpRHS(tokprec + 1, std::move(RHS));
             if(!RHS){
-                
-            std::cout << "END" << std::endl;
                 return nullptr;
             }
-            
-             std::cout << "RETURN" << std::endl;
-
             LHS = llvm::make_unique<BinaryAST>(BinOp, std::move(LHS), std::move(RHS));
-            
-             std::cout << "NEW GAME!" << std::endl;
             return ParseBinOpRHS(0,std::move(LHS));
         }else{
-            std::cout << "NOT SAIKI" << std::endl;
-
             LHS = llvm::make_unique<BinaryAST>(BinOp, std::move(LHS), std::move(RHS));
             return LHS;
         }
@@ -231,7 +217,6 @@ static std::unique_ptr<ExprAST> ParseBinOpRHS(int CallerPrec,
 // ExprASTは1. 数値リテラル 2. '('から始まる演算 3. 二項演算子の三通りが考えられる為、
 // 最初に1,2を判定して、そうでなければ二項演算子だと思う。
 static std::unique_ptr<ExprAST> ParseExpression() {
-    std::cout << "KAORI" << std::endl;
     auto LHS = ParsePrimary();
     if (!LHS)
         return nullptr;
