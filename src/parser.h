@@ -128,15 +128,31 @@ static std::unique_ptr<ExprAST> ParseParenExpr() {
     // 　 CurTokが')'かどうかチェックします。もし')'でなければ、LogErrorを用いてエラーを出して下さい。
     // 4. getNextToken()を呼んでトークンを一つ進め、2で呼んだParseExpressionの返り値を返します。
     //
-    // 課題を解く時はこの行を消してここに実装して下さい。
-    return nullptr;
+    std::cout<<"KAKKO ARUNE!" << std::endl;
+    if(CurTok != '('){
+        LogError("KAKKO ( JYA NAIYO");
+        std::cout << (char)CurTok << std::endl;
+        LogError("DAYO");
+    }
+    getNextToken();
+    auto ptr = ParseExpression();
+    if(ptr==nullptr){
+        return nullptr;
+    }
+    if(CurTok != ')'){
+        LogError("KAKKO ) GA NAIYO!!");
+    }
+    getNextToken();
+    return ptr;
 }
 
 // ParsePrimary - NumberASTか括弧をパースする関数
 static std::unique_ptr<ExprAST> ParsePrimary() {
+    std::string buf{(char)CurTok};
+    std::string str = buf + " is unknown token when expecting an expression";
     switch (CurTok) {
         default:
-            return LogError("unknown token when expecting an expression");
+            return LogError(str.c_str());
         case tok_number:
             return ParseNumberExpr();
         case '(':
@@ -150,8 +166,40 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
 // 状態で返ります。
 static std::unique_ptr<ExprAST> ParseBinOpRHS(int CallerPrec,
         std::unique_ptr<ExprAST> LHS) {
-    // 課題を解く時はこの行を消して下さい。
-    return LHS;
+        int tokprec = GetTokPrecedence();
+        std::cout << "CallerPrec: " << CallerPrec << std::endl;
+        std::cout << "Parse: " << (char)CurTok << "and this Prec is" << tokprec << std::endl;
+        if(CallerPrec>tokprec){
+            return LHS;
+        }
+
+        int BinOp = CurTok;
+        getNextToken();
+        std::cout << "RISA" << std::endl;
+        auto RHS = ParsePrimary();
+        int NextPrec = GetTokPrecedence();
+        std::cout << "Next is" << (char)CurTok << "and this prec is "<<NextPrec << std::endl;
+        if(tokprec <= NextPrec){
+            std::cout << "SAIKI" << std::endl;
+            RHS = ParseBinOpRHS(tokprec + 1, std::move(RHS));
+            if(!RHS){
+                
+            std::cout << "END" << std::endl;
+                return nullptr;
+            }
+            
+             std::cout << "RETURN" << std::endl;
+
+            LHS = llvm::make_unique<BinaryAST>(BinOp, std::move(LHS), std::move(RHS));
+            
+             std::cout << "NEW GAME!" << std::endl;
+            return ParseBinOpRHS(0,std::move(LHS));
+        }else{
+            std::cout << "NOT SAIKI" << std::endl;
+
+            LHS = llvm::make_unique<BinaryAST>(BinOp, std::move(LHS), std::move(RHS));
+            return LHS;
+        }
     while (true) {
         // 1. 現在の二項演算子の結合度を取得する。 e.g. int tokprec = GetTokPrecedence();
 
@@ -183,6 +231,7 @@ static std::unique_ptr<ExprAST> ParseBinOpRHS(int CallerPrec,
 // ExprASTは1. 数値リテラル 2. '('から始まる演算 3. 二項演算子の三通りが考えられる為、
 // 最初に1,2を判定して、そうでなければ二項演算子だと思う。
 static std::unique_ptr<ExprAST> ParseExpression() {
+    std::cout << "KAORI" << std::endl;
     auto LHS = ParsePrimary();
     if (!LHS)
         return nullptr;

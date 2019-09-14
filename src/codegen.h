@@ -41,7 +41,12 @@ Value *BinaryAST::codegen() {
   // TODO 1.7: '-'と'*'に対してIRを作ってみよう
   // 上の行とhttps://llvm.org/doxygen/classllvm_1_1IRBuilder.htmlを参考のこと
   // case '-': ...
-
+  case '-':
+    return Builder.CreateSub(L, R, "subtmp");
+  case '*':
+    return Builder.CreateMul(L, R, "multmp");
+  case '&':
+    return nullptr;
   default:
     return LogErrorV("invalid binary operator");
   }
@@ -131,6 +136,7 @@ myModule = llvm::make_unique<Module>("my cool jit", Context);
       getNextToken();
       break;
     default:
+      std::cout << "GOGOGOGO!!!"<<std::endl;
       HandleTopLevelExpression();
       break;
     }
