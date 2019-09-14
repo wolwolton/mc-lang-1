@@ -163,29 +163,6 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
 // 状態で返ります。
 static std::unique_ptr<ExprAST> ParseBinOpRHS(int CallerPrec,
         std::unique_ptr<ExprAST> LHS) {
-        int tokprec = GetTokPrecedence();
-        std::cout << "CallerPrec: " << CallerPrec << std::endl;
-        std::cout << "Parse: " << (char)CurTok << "and this Prec is" << tokprec << std::endl;
-        if(CallerPrec>tokprec){
-            return LHS;
-        }
-
-        int BinOp = CurTok;
-        getNextToken();
-        auto RHS = ParsePrimary();
-        int NextPrec = GetTokPrecedence();
-        std::cout << "Next is" << (char)CurTok << "and this prec is "<<NextPrec << std::endl;
-        if(tokprec <= NextPrec){
-            RHS = ParseBinOpRHS(tokprec + 1, std::move(RHS));
-            if(!RHS){
-                return nullptr;
-            }
-            LHS = llvm::make_unique<BinaryAST>(BinOp, std::move(LHS), std::move(RHS));
-            return ParseBinOpRHS(0,std::move(LHS));
-        }else{
-            LHS = llvm::make_unique<BinaryAST>(BinOp, std::move(LHS), std::move(RHS));
-            return LHS;
-        }
     while (true) {
         // 1. 現在の二項演算子の結合度を取得する。 e.g. int tokprec = GetTokPrecedence();
 
@@ -211,6 +188,29 @@ static std::unique_ptr<ExprAST> ParseBinOpRHS(int CallerPrec,
 
         // LHS, RHSをBinaryASTにしてLHSに代入する。
         //LHS = llvm::make_unique<BinaryAST>(BinOp, std::move(LHS), std::move(RHS));
+        int tokprec = GetTokPrecedence();
+        std::cout << "CallerPrec: " << CallerPrec << std::endl;
+        std::cout << "Parse: " << (char)CurTok << "and this Prec is" << tokprec << std::endl;
+        if(CallerPrec>tokprec){
+            return LHS;
+        }
+
+        int BinOp = CurTok;
+        getNextToken();
+        auto RHS = ParsePrimary();
+        int NextPrec = GetTokPrecedence();
+        std::cout << "Next is" << (char)CurTok << "and this prec is "<<NextPrec << std::endl;
+        if(tokprec <= NextPrec){
+            RHS = ParseBinOpRHS(tokprec + 1, std::move(RHS));
+            if(!RHS){
+                return nullptr;
+            }
+            LHS = llvm::make_unique<BinaryAST>(BinOp, std::move(LHS), std::move(RHS));
+            return ParseBinOpRHS(0,std::move(LHS));
+        }else{
+            LHS = llvm::make_unique<BinaryAST>(BinOp, std::move(LHS), std::move(RHS));
+            return LHS;
+        }
     }
 }
 
